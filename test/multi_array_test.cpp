@@ -41,10 +41,18 @@ TEST(MultiArrayTest, NormalMultiArrayShapeTest) {
 
 static_assert(std::is_base_of<std::array<int, 25>, circular_multiarray<int, 5, 5>>::value);
 TEST(MultiArrayTest, CircularMultiArrayIndexTest) {
-	for(int y = 0; y < 5; ++y) {
-		for(int x = 0; x < 5; ++x) {
+	for(int y = 0; y < 10; ++y) {
+		for(int x = 0; x < 10; ++x) {
 			int i = multiarray_utils<5, 5>::circular_index(x, y);
 			EXPECT_EQ(i, (y%5)*5 + (x%5)) << "at index (" << x << ", " << y << ")";
+		}
+	}
+}
+TEST(MultiArrayTest, CircularMultiArrayIndexNegativeTest) {
+	for(int y = 1; y <= 5; ++y) {
+		for(int x = 1; x <= 5; ++x) {
+			int i = multiarray_utils<5, 5>::circular_index(-x, -y);
+			EXPECT_EQ(i, (5-y)*5 + (5-x)) << "at index (" << x << ", " << y << ")";
 		}
 	}
 }

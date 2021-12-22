@@ -29,8 +29,8 @@ public:
 	}
 
 	template<typename ... Args>
-	constexpr static std::size_t circular_index(std::size_t n, Args... args) {
-		return (n % std::get<sizeof...(N) - sizeof...(Args) - 1>(std::forward_as_tuple(N...))) *
+	constexpr static std::size_t circular_index(std::ptrdiff_t n, Args... args) {
+		return (modulo(n, std::get<sizeof...(N) - sizeof...(Args) - 1>(std::forward_as_tuple(N...)))) *
 			   reduce_n<mul, sizeof...(N) - sizeof...(Args) - 1, N...>::value +
 			   multiarray_utils<N...>::circular_index(args...);
 	}
@@ -38,6 +38,12 @@ public:
 	template<typename ... Args>
 	constexpr static std::size_t circular_index() {
 		return 0;
+	}
+
+private:
+	constexpr static int modulo(int x, int n) {
+		// because default modulo in c++ is stupid
+		return (x % n + n) % n;
 	}
 };
 
