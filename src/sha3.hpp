@@ -6,15 +6,7 @@
 #include <bit>
 
 #include "multi_array.hpp"
-
-namespace std {
-
-template<std::size_t N>
-constexpr std::bitset<N> rotl(const std::bitset<N>& x, int s) noexcept {
-    return (x << s) | ((x >> (N - s)) & (std::bitset<N>().set() << s));
-}
-
-}
+#include "bitset_rot.hpp"
 
 template<std::size_t L, std::size_t R, std::size_t C>
 class Keccak {
@@ -52,7 +44,7 @@ public:
 		circular_multiarray<RowType, 5> c;
 		circular_multiarray<RowType, 5> d;
 
-        for (std::size_t i=0; i < c.size(); ++i) {
+        for (std::size_t i=0; i < 5; ++i) {
             c(i) = RowType();
             for(std::size_t j = 0; j < 5; ++j)
             	c(i) ^= state(i, j);
