@@ -6,7 +6,6 @@
 #include <bit>
 
 #include "multi_array.hpp"
-#include "circular_array.hpp"
 
 /*template<std::size_t R, std::size_t L, std::size_t C>
 constexpr std::size_t row_size() {
@@ -123,7 +122,7 @@ private:
 int main() {
     std::cout << multiarray_utils<5, 10>::index(4, 5) << "\n";
 
-    multiarray<int, 5, 5> arr;
+    circular_multiarray<int, 5, 5> arr;
     arr(1, 1) = 17;
-    std::cout << arr(1, 1) << std::endl;
+    std::cout << arr(6, 1) << std::endl;
 }

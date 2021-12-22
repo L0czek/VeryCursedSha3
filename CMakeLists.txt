@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_executable(sha3
     src/multi_array.hpp
-    src/circular_array.hpp
     src/template_utils.hpp
     src/main.cc)
 
