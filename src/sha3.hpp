@@ -48,8 +48,11 @@ public:
             c(i) = RowType();
             for(std::size_t j = 0; j < 5; ++j)
             	c(i) ^= state(i, j);
+		}
+		for (std::size_t i=0; i < 5; ++i) {
             d(i) = c(i - 1) ^ std::rotl(c(i + 1), 1);
-
+		}
+		for (std::size_t i=0; i < 5; ++i) {
             for (std::size_t j=0; j < 5; ++j) {
                 state(i, j) ^= d(i);
             }
