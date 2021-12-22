@@ -32,7 +32,7 @@ public:
 	constexpr static std::size_t circular_index(std::size_t n, Args... args) {
 		return (n % std::get<sizeof...(N) - sizeof...(Args) - 1>(std::forward_as_tuple(N...))) *
 			   reduce_n<mul, sizeof...(N) - sizeof...(Args) - 1, N...>::value +
-			   multiarray_utils<N...>::index(args...);
+			   multiarray_utils<N...>::circular_index(args...);
 	}
 
 	template<typename ... Args>
@@ -51,7 +51,7 @@ public:
  * \tparam N The multiarray dimensions
  */
 template<typename T, std::size_t ... N>
-class multiarray : public std::array<T, reduce<add, N...>::value> {
+class multiarray : public std::array<T, reduce<mul, N...>::value> {
 public:
 	template<typename ... Args>
 	constexpr T& operator()(Args ... n) noexcept
@@ -74,7 +74,7 @@ public:
  * \tparam N The array dimensions
  */
 template<typename T, std::size_t ... N>
-class circular_multiarray : public std::array<T, reduce<add, N...>::value> {
+class circular_multiarray : public std::array<T, reduce<mul, N...>::value> {
 public:
 	template<typename ... Args>
 	constexpr T& operator()(Args ... n) noexcept
