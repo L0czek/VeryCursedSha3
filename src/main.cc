@@ -8,7 +8,7 @@
 #include "multi_array.hpp"
 #include "circular_array.hpp"
 
-template<std::size_t R, std::size_t L, std::size_t C>
+/*template<std::size_t R, std::size_t L, std::size_t C>
 constexpr std::size_t row_size() {
     static_assert(25 * (1 << L) == R + C);
     return 1 << L;
@@ -117,9 +117,13 @@ private:
         { 0x8000000080008008 },
     } };
 
-};
+};*/
 
 
 int main() {
-    std::cout << utils<5, 10>::index(4, 5) << "\n";
+    std::cout << multiarray_utils<5, 10>::index(4, 5) << "\n";
+
+    multiarray<int, 5, 5> arr;
+    arr(1, 1) = 17;
+    std::cout << arr(1, 1) << std::endl;
 }

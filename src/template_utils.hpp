@@ -20,13 +20,3 @@ struct reduce_n { static constexpr std::size_t value = L ? OP<N, reduce_n<OP, L 
 
 template<template<std::size_t, std::size_t> typename OP, std::size_t L, std::size_t N>
 struct reduce_n<OP, L, N> { static constexpr std::size_t value = L ? N : 1; };
-
-template<typename F, typename ... T>
-struct append_back {
-	using type = std::tuple<T..., F>;
-};
-
-template<typename F, typename ... T>
-struct revert {
-	using type = typename append_back<F, typename revert<T...>::type>::type;
-};
