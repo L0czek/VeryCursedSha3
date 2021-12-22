@@ -64,6 +64,17 @@ public:
 	{
 		return this->operator[](multiarray_utils<N...>::index(n...));
 	}
+
+	using std::array<T, reduce<mul, N...>::value>::size;
+
+	template<std::size_t dimension>
+	constexpr std::size_t size() const noexcept {
+		return std::get<dimension>(shape());
+	}
+
+	constexpr auto shape() const noexcept {
+		return std::tuple(N...);
+	}
 };
 
 /**
@@ -86,5 +97,16 @@ public:
 	constexpr const T& operator()(Args ... n) const noexcept
 	{
 		return this->operator[](multiarray_utils<N...>::circular_index(n...));
+	}
+
+	using std::array<T, reduce<mul, N...>::value>::size;
+
+	template<std::size_t dimension>
+	constexpr std::size_t size() const noexcept {
+		return std::get<dimension>(shape());
+	}
+
+	constexpr auto shape() const noexcept {
+		return std::tuple(N...);
 	}
 };

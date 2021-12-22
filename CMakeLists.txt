@@ -9,7 +9,8 @@ set(CMAKE_CXX_STANDARD 20)
 add_executable(sha3
     src/multi_array.hpp
     src/template_utils.hpp
-    src/main.cc)
+    src/sha3.hpp
+    src/main.cpp)
 
 if (GTest_FOUND)
     enable_testing()
@@ -18,7 +19,7 @@ if (GTest_FOUND)
         src/multi_array.hpp
         src/template_utils.hpp
         test/multi_array_test.cpp
-    )
+        test/sha3_test.cpp)
     target_link_libraries(sha3_test
         ${GTEST_LIBRARIES}
         ${GTEST_MAIN_LIBRARIES}

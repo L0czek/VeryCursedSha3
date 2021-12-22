@@ -31,6 +31,13 @@ TEST(MultiArrayTest, NormalMultiArrayWriteTest) {
 	for(int i = 0; i < 25; ++i)
 		EXPECT_EQ(arr[i], i) << "at index " << i;
 }
+TEST(MultiArrayTest, NormalMultiArrayShapeTest) {
+	multiarray<int, 5, 10> arr;
+	EXPECT_EQ(arr.size(), 50);
+	EXPECT_EQ(arr.size<0>(), 5);
+	EXPECT_EQ(arr.size<1>(), 10);
+	EXPECT_EQ(arr.shape(), std::make_tuple(5, 10));
+}
 
 static_assert(std::is_base_of<std::array<int, 25>, circular_multiarray<int, 5, 5>>::value);
 TEST(MultiArrayTest, CircularMultiArrayIndexTest) {
@@ -60,4 +67,10 @@ TEST(MultiArrayTest, CircularMultiArrayWriteTest) {
 	}
 	for(int i = 0; i < 25; ++i)
 		EXPECT_EQ(arr[i], i) << "at index " << i;
+}
+TEST(MultiArrayTest, CircularMultiArrayShapeTest) {
+	circular_multiarray<int, 5, 10> arr;
+	EXPECT_EQ(arr.size(), 50);
+	EXPECT_EQ(arr.size<0>(), 5);
+	EXPECT_EQ(arr.size<1>(), 10);
 }
