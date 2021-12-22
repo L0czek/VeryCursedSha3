@@ -4,40 +4,40 @@
 #include <type_traits>
 #include <numeric>
 #include <bit>
+#include <vector>
 
 #include "multi_array.hpp"
 #include "bitset_rot.hpp"
 
-template<std::size_t L, std::size_t R, std::size_t C>
-class Keccak {
+template<std::size_t L, std::size_t R, std::size_t C, typename RowT = std::bitset<1 << L>>
+class KeccakF_ {
 public:
 	static_assert(25 * (1 << L) == R + C);
+	constexpr static const std::size_t ROUNDS = 24;
 	constexpr static const std::size_t row_size = 1 << L;
 
-    using RowType = std::bitset<row_size>;
+	using RowType = RowT;
     using StateType = circular_multiarray<RowType, 5, 5>;
 
     StateType state;
 
-	void load_state(std::array<unsigned long, 25> input_state) {
-		static_assert(sizeof(unsigned long) == 8);
-		for(int i = 0; i < 25; ++i)
-			state[i] = input_state[i];
+	KeccakF_()
+	{
+		reset();
 	}
 
-    std::array<unsigned long, 25> dump_state() {
-    	static_assert(sizeof(unsigned long) == 8);
-		std::array<unsigned long, 25> out;
+	void reset() {
 		for(int i = 0; i < 25; ++i)
-			out[i] = state[i].to_ulong();
-		return out;
-    }
+			state[i] = 0;
+	}
 
-    void f(std::size_t nr) {
-        theta();
-        const auto b = rho_pi();
-        chi(b);
-        iota(nr);
+    void f() {
+		for(std::size_t roundNr = 0; roundNr < ROUNDS; ++roundNr) {
+			theta();
+			const auto b = rho_pi();
+			chi(b);
+			iota(roundNr);
+		}
     }
 
     void theta() noexcept {
@@ -91,7 +91,7 @@ public:
          18,  2, 61, 56, 14,
     } };
 
-    inline static const multiarray<RowType, 24> rc = {
+    inline static const multiarray<RowType, ROUNDS> rc = { {
         0x0000000000000001,
         0x0000000000008082,
         0x800000000000808A,
@@ -116,11 +116,75 @@ public:
         0x8000000000008080,
         0x0000000080000001,
         0x8000000080008008,
-    };
+    } };
 
 };
 
-using SHA3_224 = Keccak<6, 1152, 448>;
-using SHA3_256 = Keccak<6, 1088, 512>;
-using SHA3_384 = Keccak<6, 832, 768>;
-using SHA3_512 = Keccak<6, 576, 1024>;
+template<std::size_t L, std::size_t R, std::size_t C>
+class KeccakF : public KeccakF_<L, R, C>
+{
+};
+
+// When dealing with a standard value of l, we can just use "uint64_t" instead of std::bitset to speed up
+// computations
+template<std::size_t R, std::size_t C>
+class KeccakF<6, R, C> : public KeccakF_<6, R, C, uint64_t>
+{
+	static_assert(sizeof(unsigned long)*8 == 1<<6);
+};
+
+// Now that we have KeccakF, define Keccak algorithm itself
+template<std::size_t L, std::size_t R, std::size_t C, std::size_t D>
+class Keccak : public KeccakF<L, R, C>
+{
+	static_assert(D % 8 == 0);
+	// TODO: implement absorb/squeeze for arbitrary L
+};
+
+template<std::size_t R, std::size_t C, std::size_t D>
+class Keccak<6, R, C, D> : public KeccakF<6, R, C>
+{
+public:
+	static_assert(D % 8 == 0);
+	static_assert(R % 64 == 0);
+
+	using Block = std::array<uint8_t, R/8>;
+	using Digest = std::array<uint8_t, D/8>;
+
+	void absorb(const Block& block) {
+		unsigned char* state_data = reinterpret_cast<unsigned char*>(this->state.data());
+		for(std::size_t i = 0; i < block.size(); ++i) {
+			state_data[i] ^= block[i];
+		}
+	}
+	Block squeeze() {
+		unsigned char* state_data = reinterpret_cast<unsigned char*>(this->state.data());
+		Block out;
+		for(std::size_t i = 0; i < out.size(); ++i) {
+			out[i] = state_data[i];
+		}
+		return out;
+	}
+
+	Digest hash(const std::vector<Block>& blocksToAbsorb) { // TODO: implement padding and input data instead of a list of raw blocks...
+		this->reset();
+
+		for (const Block& block : blocksToAbsorb) {
+			this->absorb(block);
+			this->f();
+		}
+
+		// Squeeze the hash and return the digest (the first D bits of the squeezed output)
+		// TODO: assumes that one squeezed block is enough because that is the case for SHA3 and I'm lazy
+		static_assert(D < R);
+		Block squeezed = this->squeeze();
+		Digest digest;
+		std::copy(squeezed.begin(), squeezed.begin() + digest.size(), digest.begin());
+		return digest;
+	}
+};
+
+using SHA3_224 = Keccak<6, 1152, 448, 224>;
+using SHA3_256 = Keccak<6, 1088, 512, 256>;
+using SHA3_384 = Keccak<6, 832, 768, 384>;
+using SHA3_512 = Keccak<6, 576, 1024, 512>;

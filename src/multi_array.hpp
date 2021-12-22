@@ -59,6 +59,26 @@ private:
 template<typename T, std::size_t ... N>
 class multiarray : public std::array<T, reduce<mul, N...>::value> {
 public:
+	multiarray()
+	{
+	}
+	multiarray(const std::array<T, reduce<mul, N...>::value>& other) : std::array<T, reduce<mul, N...>::value>(other)
+	{
+	}
+	multiarray(std::array<T, reduce<mul, N...>::value>&& other) : std::array<T, reduce<mul, N...>::value>(other)
+	{
+	}
+	multiarray& operator=(const std::array<T, reduce<mul, N...>::value>& other)
+	{
+		std::array<T, reduce<mul, N...>::value>::operator=(other);
+		return *this;
+	}
+	multiarray& operator=(std::array<T, reduce<mul, N...>::value>&& other)
+	{
+		std::array<T, reduce<mul, N...>::value>::operator=(other);
+		return *this;
+	}
+
 	template<typename ... Args>
 	constexpr T& operator()(Args ... n) noexcept
 	{
@@ -93,6 +113,26 @@ public:
 template<typename T, std::size_t ... N>
 class circular_multiarray : public std::array<T, reduce<mul, N...>::value> {
 public:
+	circular_multiarray()
+	{
+	}
+	circular_multiarray(const std::array<T, reduce<mul, N...>::value>& other) : std::array<T, reduce<mul, N...>::value>(other)
+	{
+	}
+	circular_multiarray(std::array<T, reduce<mul, N...>::value>&& other) : std::array<T, reduce<mul, N...>::value>(other)
+	{
+	}
+	circular_multiarray& operator=(const std::array<T, reduce<mul, N...>::value>& other)
+	{
+		std::array<T, reduce<mul, N...>::value>::operator=(other);
+		return *this;
+	}
+	circular_multiarray& operator=(std::array<T, reduce<mul, N...>::value>&& other)
+	{
+		std::array<T, reduce<mul, N...>::value>::operator=(other);
+		return *this;
+	}
+
 	template<typename ... Args>
 	constexpr T& operator()(Args ... n) noexcept
 	{
