@@ -6,7 +6,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(sha3
-    src/main.cc
-)
+    src/multi_array.hpp
+    src/circular_array.hpp
+    src/template_utils.hpp
+    src/main.cc)
 
 

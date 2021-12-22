@@ -1,83 +1,12 @@
 #include <iostream>
-#include <algorithm>
 #include <bitset>
 #include <array>
 #include <type_traits>
 #include <numeric>
 #include <bit>
-#include <tuple>
 
-template<typename T, std::size_t N>
-class circulararray :public std::array<T, N> {
-public:
-    T& operator[](int n) {
-        return std::array<T, N>::operator[](n % 5);
-    }
-    const T& operator[](int n) const {
-        return std::array<T, N>::operator[](n % 5);
-    }
-};
-
-template<std::size_t A, std::size_t B> struct add { static constexpr std::size_t value = A + B; };
-template<std::size_t A, std::size_t B> struct mul { static constexpr std::size_t value = A * B; };
-
-template<template<std::size_t, std::size_t> typename OP, std::size_t A, std::size_t ... R>
-struct reduce { static constexpr std::size_t value = OP<A, reduce<OP, R...>::value>::value; };
-
-template<template<std::size_t, std::size_t> typename OP, std::size_t N> struct reduce<OP, N> { static constexpr std::size_t value = N; };
-
-template<template<std::size_t, std::size_t> typename OP, std::size_t L, std::size_t N, std::size_t ... R>
-struct reduce_n { static constexpr std::size_t value = L ? OP<N, reduce_n<OP, L - 1, R...>::value>::value : 1; };
-
-template<template<std::size_t, std::size_t> typename OP, std::size_t L, std::size_t N>
-struct reduce_n<OP, L, N> { static constexpr std::size_t value = L ? N : 1; };
-
-template<typename F, typename ... T>
-struct append_back {
-    using type = std::tuple<T..., F>;
-};
-
-template<typename F, typename ... T>
-struct revert {
-    using type = typename append_back<F, typename revert<T...>::type>::type;
-};
-
-template<std::size_t ... N>
-class utils {
-public:
-    template<typename ... Args>
-    static std::size_t index(std::size_t n, Args... args) {
-        return n * reduce_n<mul, sizeof...(N) - sizeof...(Args) - 1, N...>::value +
-            utils<N...>::index(args...);
-    }
-
-    template<typename ... Args>
-    static std::size_t index() {
-        return 0;
-    }
-};
-
-template<typename T, std::size_t ... N>
-class array :public std::array<T, reduce<add, N...>::value> {
-
-public:
-    template<typename ... Args>
-    T& operator()(Args ... n) noexcept {
-    }
-};
-
-template<template<typename, std::size_t> typename base, typename T, std::size_t N1, std::size_t ... R>
-struct InduceMultiArray{
-    using type = base<typename InduceMultiArray<base, T, R...>::type, N1>;
-};
-
-template<template<typename, std::size_t> typename base, typename T, std::size_t N>
-struct InduceMultiArray<base, T, N> {
-    using type = base<T, N>;
-};
-
-template<template<typename, std::size_t> typename base, typename T, std::size_t N1, std::size_t ... R>
-using multiarray = typename InduceMultiArray<base, T, N1, R...>::type;
+#include "multi_array.hpp"
+#include "circular_array.hpp"
 
 template<std::size_t R, std::size_t L, std::size_t C>
 constexpr std::size_t row_size() {
