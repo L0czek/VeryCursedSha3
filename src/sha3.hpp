@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <bitset>
+#include <iterator>
 #include <type_traits>
 #include <numeric>
 #include <bit>
@@ -12,47 +13,47 @@
 template<std::size_t L, std::size_t R, std::size_t C, typename RowT = std::bitset<1 << L>>
 class KeccakF_ {
 public:
-	static_assert(25 * (1 << L) == R + C);
-	constexpr static const std::size_t ROUNDS = 24;
-	constexpr static const std::size_t row_size = 1 << L;
+    static_assert(25 * (1 << L) == R + C);
+    constexpr static const std::size_t ROUNDS = 24;
+    constexpr static const std::size_t row_size = 1 << L;
 
-	using RowType = RowT;
+    using RowType = RowT;
     using StateType = circular_multiarray<RowType, 5, 5>;
 
     StateType state;
 
-	KeccakF_()
-	{
-		reset();
-	}
+    KeccakF_()
+    {
+        reset();
+    }
 
-	void reset() {
-		for(int i = 0; i < 25; ++i)
-			state[i] = 0;
-	}
+    void reset() {
+        for(int i = 0; i < 25; ++i)
+            state[i] = 0;
+    }
 
     void f() {
-		for(std::size_t roundNr = 0; roundNr < ROUNDS; ++roundNr) {
-			theta();
-			const auto b = rho_pi();
-			chi(b);
-			iota(roundNr);
-		}
+        for(std::size_t roundNr = 0; roundNr < ROUNDS; ++roundNr) {
+            theta();
+            const auto b = rho_pi();
+            chi(b);
+            iota(roundNr);
+        }
     }
 
     void theta() noexcept {
-		circular_multiarray<RowType, 5> c;
-		circular_multiarray<RowType, 5> d;
+        circular_multiarray<RowType, 5> c;
+        circular_multiarray<RowType, 5> d;
 
         for (std::size_t i=0; i < 5; ++i) {
             c(i) = RowType();
             for(std::size_t j = 0; j < 5; ++j)
-            	c(i) ^= state(i, j);
-		}
-		for (std::size_t i=0; i < 5; ++i) {
+                c(i) ^= state(i, j);
+        }
+        for (std::size_t i=0; i < 5; ++i) {
             d(i) = c(i - 1) ^ std::rotl(c(i + 1), 1);
-		}
-		for (std::size_t i=0; i < 5; ++i) {
+        }
+        for (std::size_t i=0; i < 5; ++i) {
             for (std::size_t j=0; j < 5; ++j) {
                 state(i, j) ^= d(i);
             }
@@ -130,58 +131,90 @@ class KeccakF : public KeccakF_<L, R, C>
 template<std::size_t R, std::size_t C>
 class KeccakF<6, R, C> : public KeccakF_<6, R, C, uint64_t>
 {
-	static_assert(sizeof(unsigned long)*8 == 1<<6);
+    static_assert(sizeof(unsigned long)*8 == 1<<6);
 };
 
 // Now that we have KeccakF, define Keccak algorithm itself
 template<std::size_t L, std::size_t R, std::size_t C, std::size_t D>
 class Keccak : public KeccakF<L, R, C>
 {
-	static_assert(D % 8 == 0);
-	// TODO: implement absorb/squeeze for arbitrary L
+    static_assert(D % 8 == 0);
+    // TODO: implement absorb/squeeze for arbitrary L
+    
 };
 
 template<std::size_t R, std::size_t C, std::size_t D>
 class Keccak<6, R, C, D> : public KeccakF<6, R, C>
 {
 public:
-	static_assert(D % 8 == 0);
-	static_assert(R % 64 == 0);
+    static constexpr unsigned char PaddingLastByte = static_cast<unsigned char>(0x80);
+    static constexpr unsigned char PaddingFirstByte = static_cast<unsigned char>(0x06);
+    static_assert(D % 8 == 0);
+    static_assert(R % 64 == 0);
 
-	using Block = std::array<uint8_t, R/8>;
-	using Digest = std::array<uint8_t, D/8>;
+    using Block = std::array<uint8_t, R/8>;
+    using Digest = std::array<uint8_t, D/8>;
+    
+    template<std::random_access_iterator Iterator>
+    Keccak& hash(Iterator begin, Iterator end) {
+        Block block;
+        block.fill(0);
 
-	void absorb(const Block& block) {
-		unsigned char* state_data = reinterpret_cast<unsigned char*>(this->state.data());
-		for(std::size_t i = 0; i < block.size(); ++i) {
-			state_data[i] ^= block[i];
-		}
-	}
-	Block squeeze() {
-		unsigned char* state_data = reinterpret_cast<unsigned char*>(this->state.data());
-		Block out;
-		for(std::size_t i = 0; i < out.size(); ++i) {
-			out[i] = state_data[i];
-		}
-		return out;
-	}
+        auto it = begin;
+        while (static_cast<std::size_t>(std::distance(it, end)) > block.size()) {
+            it = std::next(it, block.size());
+            std::copy(begin, it, block.begin());
+            absorb(block);
+            KeccakF<6, R, C>::f();
+            begin = std::next(begin, block.size());
+        }
 
-	Digest hash(const std::vector<Block>& blocksToAbsorb) { // TODO: implement padding and input data instead of a list of raw blocks...
-		this->reset();
+        block.fill(0);
+        std::copy(it, end, block.begin());
+        const auto index = std::distance(it, end);
+        block[index] = 0x06;
+        block.back() ^= 0x80;
+        absorb(block);
+        KeccakF<6, R, C>::f();
+        return *this;
+    }
 
-		for (const Block& block : blocksToAbsorb) {
-			this->absorb(block);
-			this->f();
-		}
+    Digest digest() {
+        // Squeeze the hash and return the digest (the first D bits of the squeezed output)
+        // TODO: assumes that one squeezed block is enough because that is the case for SHA3 and I'm lazy
+        static_assert(D < R);
+        Block squeezed = this->squeeze();
+        Digest digest;
+        std::copy(squeezed.begin(), squeezed.begin() + digest.size(), digest.begin());
+        return digest;
+    }
 
-		// Squeeze the hash and return the digest (the first D bits of the squeezed output)
-		// TODO: assumes that one squeezed block is enough because that is the case for SHA3 and I'm lazy
-		static_assert(D < R);
-		Block squeezed = this->squeeze();
-		Digest digest;
-		std::copy(squeezed.begin(), squeezed.begin() + digest.size(), digest.begin());
-		return digest;
-	}
+    std::string hexdigest() {
+        const auto hex = "01234567890abcdef";
+        std::string ret;
+        for (const auto & i : digest()) {
+            ret += hex[i >> 4];
+            ret += hex[i & 0xf];
+        }
+        
+        return ret;
+    }
+
+    void absorb(const Block& block) {
+        unsigned char* state_data = reinterpret_cast<unsigned char*>(this->state.data());
+        for(std::size_t i = 0; i < block.size(); ++i) {
+            state_data[i] ^= block[i];
+        }
+    }
+
+    Block squeeze() {
+        unsigned char* state_data = reinterpret_cast<unsigned char*>(this->state.data());
+        Block out;
+        for(std::size_t i = 0; i < out.size(); ++i) {
+            out[i] = state_data[i];
+        }
+        return out;
+    }
 };
 
 using SHA3_224 = Keccak<6, 1152, 448, 224>;

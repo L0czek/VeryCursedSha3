@@ -1,5 +1,5 @@
 #include "sha3.hpp"
+#include <string>
 
 int main() {
-	SHA3_384 sha3;
 }

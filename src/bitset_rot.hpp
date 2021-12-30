@@ -7,8 +7,8 @@
  */
 
 namespace std {
-	template<std::size_t N>
-	constexpr std::bitset<N> rotl(const std::bitset<N>& x, int s) noexcept {
-		return (x << s) | ((x >> (N - s)) & ~(std::bitset<N>().set() << s));
-	}
+    template<std::size_t N>
+    constexpr std::bitset<N> rotl(const std::bitset<N>& x, int s) noexcept {
+        return (x << s) | ((x >> (N - s)) & ~(std::bitset<N>().set() << s));
+    }
 }
