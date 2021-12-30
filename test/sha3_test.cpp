@@ -312,3 +312,10 @@ TEST(SHA3Test, FullRunHash) {
     const std::string msg = "";
     EXPECT_EQ(sha3.hash(std::begin(msg), std::end(msg)).digest(), hash_val);
 }
+TEST(SHA3Test, FullRunHashHex) {
+    std::string hash_val = "a69f73cca23a9ac5c8b567dc185a756e97c982164fe25859e0d1dcc1475c80a615b2123af1f5f94c11e3e9402c3ac558f500199d95b6d3e301758586281dcd26";
+
+    SHA3_512 sha3;
+    const std::string msg = "";
+    EXPECT_EQ(sha3.hash(std::begin(msg), std::end(msg)).hexdigest(), hash_val);
+}

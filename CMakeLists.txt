@@ -5,6 +5,7 @@ find_package(GTest)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_BUILD_TYPE "Release")
 add_compile_options(-Wall -Wextra -pedantic)
 
 set(COMMON_SOURCES
@@ -21,6 +22,7 @@ set(TEST_SOURCES
     ${COMMON_SOURCES}
     test/multi_array_test.cpp
     test/bitset_rot_test.cpp
+    test/sha3_test_vectors.cpp
     test/sha3_test.cpp)
 
 add_executable(${PROJECT_NAME} ${MAIN_SOURCES})

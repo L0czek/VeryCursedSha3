@@ -161,7 +161,7 @@ public:
         block.fill(0);
 
         auto it = begin;
-        while (static_cast<std::size_t>(std::distance(it, end)) > block.size()) {
+        while (static_cast<std::size_t>(std::distance(it, end)) >= block.size()) {
             it = std::next(it, block.size());
             std::copy(begin, it, block.begin());
             absorb(block);
@@ -190,7 +190,7 @@ public:
     }
 
     std::string hexdigest() {
-        const auto hex = "01234567890abcdef";
+        const auto hex = "0123456789abcdef";
         std::string ret;
         for (const auto & i : digest()) {
             ret += hex[i >> 4];
