@@ -147,8 +147,6 @@ template<std::size_t R, std::size_t C, std::size_t D>
 class Keccak<6, R, C, D> : public KeccakF<6, R, C>
 {
 public:
-    static constexpr unsigned char PaddingLastByte = static_cast<unsigned char>(0x80);
-    static constexpr unsigned char PaddingFirstByte = static_cast<unsigned char>(0x06);
     static_assert(D % 8 == 0);
     static_assert(R % 64 == 0);
 
