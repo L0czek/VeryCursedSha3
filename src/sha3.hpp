@@ -51,7 +51,7 @@ public:
                 c(i) ^= state(i, j);
         }
         for (std::size_t i=0; i < 5; ++i) {
-            d(i) = c(i - 1) ^ std::rotl(c(i + 1), 1);
+            d(i) = c(i - 1) ^ rotl(c(i + 1), 1);
         }
         for (std::size_t i=0; i < 5; ++i) {
             for (std::size_t j=0; j < 5; ++j) {
@@ -65,7 +65,7 @@ public:
 
         for (std::size_t i=0; i < 5; ++i) {
             for (std::size_t j=0; j < 5; ++j) {
-                b(j, 2 * i + 3 * j) = std::rotl(state(i, j), r(i, j));
+                b(j, 2 * i + 3 * j) = rotl(state(i, j), r(i, j));
             }
         }
 
@@ -84,7 +84,7 @@ public:
         state(0, 0) ^= rc(nr);
     }
 
-    inline static const multiarray<std::size_t, 5, 5> r = { {
+    inline static const multiarray<std::uint8_t, 5, 5> r = { {
           0,  1, 62, 28, 27,
          36, 44, 6 , 55, 20,
           3, 10, 43, 25, 39,
